@@ -1,4 +1,4 @@
---// FINAL Teleport GUI Script for AP: Bat Fight (Persistent)
+--// FINAL Teleport GUI Script for AP: Bat Fight (Persistent + Return Button)
 
 local ALLOWED_GAME_ID = 12470558349
 local GAME_LINK = "https://www.roblox.com/games/12470558349/AP-Bat-Fight"
@@ -39,38 +39,6 @@ if game.PlaceId ~= ALLOWED_GAME_ID then
     button.TextScaled = true
     button.Parent = frame
 
-    -- Dragging functionality
-    local dragging = false
-    local dragStart = nil
-    local startPos = nil
-
-    frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
-        end
-    end)
-
-    frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            if dragging then
-                local delta = input.Position - dragStart
-                frame.Position = UDim2.new(
-                    startPos.X.Scale,
-                    startPos.X.Offset + delta.X,
-                    startPos.Y.Scale,
-                    startPos.Y.Offset + delta.Y
-                )
-            end
-        end
-    end)
-
     button.MouseButton1Click:Connect(function()
         pcall(function()
             setclipboard(GAME_LINK)
@@ -99,7 +67,7 @@ local locations = {
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "BatTeleportGUI"
-screenGui.ResetOnSpawn = false -- 🔑 persist across respawns
+screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
@@ -138,10 +106,9 @@ frame.InputChanged:Connect(function(input)
     end
 end)
 
--- Title frame
+-- Title
 local titleFrame = Instance.new("Frame")
 titleFrame.Size = UDim2.new(1, 0, 0, 30)
-titleFrame.Position = UDim2.new(0, 0, 0, 0)
 titleFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 titleFrame.Parent = frame
 
@@ -163,8 +130,6 @@ closeButton.Position = UDim2.new(1, -30, 0, 2.5)
 closeButton.Text = "X"
 closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 closeButton.TextColor3 = Color3.new(1,1,1)
-closeButton.Font = Enum.Font.SourceSansBold
-closeButton.TextScaled = true
 closeButton.Parent = titleFrame
 
 local guiVisible = true
@@ -176,15 +141,12 @@ closeButton.MouseButton1Click:Connect(function()
     closedByX = true
 end)
 
--- Q toggle
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
     if input.KeyCode == Enum.KeyCode.Q and closedByX then
         guiVisible = not guiVisible
         frame.Visible = guiVisible
-        if guiVisible then
-            closedByX = false
-        end
+        if guiVisible then closedByX = false end
     end
 end)
 
@@ -201,26 +163,51 @@ layout.Padding = UDim.new(0, 5)
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Parent = scrollingFrame
 
--- Alphabetical buttons
+-- 🔑 RETURN SYSTEM
+local previousPosition = nil
+
+local returnButton = Instance.new("TextButton")
+returnButton.Size = UDim2.new(1, -5, 0, 30)
+returnButton.Text = "⬅ Return to previous location"
+returnButton.BackgroundColor3 = Color3.fromRGB(70, 40, 40)
+returnButton.TextColor3 = Color3.new(1,1,1)
+returnButton.Visible = false
+returnButton.LayoutOrder = 0
+returnButton.Parent = scrollingFrame
+
+-- Player
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Return button logic
+returnButton.MouseButton1Click:Connect(function()
+    if previousPosition then
+        humanoidRootPart.CFrame = previousPosition
+        previousPosition = nil
+        returnButton.Visible = false
+    end
+end)
+
+-- Buttons
 local sortedNames = {}
 for name in pairs(locations) do table.insert(sortedNames, name) end
 table.sort(sortedNames, function(a,b) return a:lower() < b:lower() end)
 
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-
 for index, name in ipairs(sortedNames) do
     local pos = locations[name]
+
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(1, -5, 0, 30)
     button.Text = name
     button.BackgroundColor3 = Color3.fromRGB(40,40,40)
     button.TextColor3 = Color3.new(1,1,1)
-    button.LayoutOrder = index
+    button.LayoutOrder = index + 1 -- shift because return button is 0
     button.Parent = scrollingFrame
 
     button.MouseButton1Click:Connect(function()
+        previousPosition = humanoidRootPart.CFrame
         humanoidRootPart.CFrame = CFrame.new(pos)
+        returnButton.Visible = true
     end)
 end
 
@@ -229,7 +216,6 @@ layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
 end)
 
--- Re-hook HumanoidRootPart on respawn
 player.CharacterAdded:Connect(function(char)
     humanoidRootPart = char:WaitForChild("HumanoidRootPart")
 end)
