@@ -1,4 +1,4 @@
---// FINAL Teleport GUI Script for AP: Bat Fight (Persistent + Return Button)
+--// FINAL Teleport GUI Script (FULLY MERGED)
 
 local ALLOWED_GAME_ID = 12470558349
 local GAME_LINK = "https://www.roblox.com/games/12470558349/AP-Bat-Fight"
@@ -6,51 +6,38 @@ local GAME_LINK = "https://www.roblox.com/games/12470558349/AP-Bat-Fight"
 local player = game.Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 
--- WARNING GUI if wrong game
+-- WRONG GAME CHECK
 if game.PlaceId ~= ALLOWED_GAME_ID then
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Parent = player:WaitForChild("PlayerGui")
+    local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 
-    local frame = Instance.new("Frame")
+    local frame = Instance.new("Frame", screenGui)
     frame.Size = UDim2.new(0, 400, 0, 150)
     frame.Position = UDim2.new(0.5, -200, 0.5, -75)
     frame.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    frame.BorderSizePixel = 0
-    frame.Parent = screenGui
 
-    local label = Instance.new("TextLabel")
+    local label = Instance.new("TextLabel", frame)
     label.Size = UDim2.new(1, -20, 0.7, -10)
     label.Position = UDim2.new(0, 10, 0, 10)
     label.Text = "Wrong supported game!\nGo play "..GAME_LINK
     label.TextColor3 = Color3.new(1,1,1)
     label.BackgroundTransparency = 1
-    label.Font = Enum.Font.SourceSansBold
     label.TextScaled = true
     label.TextWrapped = true
-    label.Parent = frame
 
-    local button = Instance.new("TextButton")
+    local button = Instance.new("TextButton", frame)
     button.Size = UDim2.new(0.4, 0, 0.2, 0)
     button.Position = UDim2.new(0.3, 0, 0.75, 0)
     button.Text = "OK"
-    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    button.TextColor3 = Color3.new(1,1,1)
-    button.Font = Enum.Font.SourceSansBold
-    button.TextScaled = true
-    button.Parent = frame
 
     button.MouseButton1Click:Connect(function()
-        pcall(function()
-            setclipboard(GAME_LINK)
-        end)
+        pcall(function() setclipboard(GAME_LINK) end)
         screenGui:Destroy()
     end)
 
     return
 end
 
---// Supported Game GUI
-
+-- LOCATIONS
 local locations = {
     ["Big Smoke Bat"] = Vector3.new(845, 2062, 695),
     ["Hello Kitty Bat"] = Vector3.new(700, 2091, 870),
@@ -65,76 +52,58 @@ local locations = {
     ["Nuke Bat"] = Vector3.new(961, 2106, 541)
 }
 
+-- GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "BatTeleportGUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
-local frame = Instance.new("Frame")
+local frame = Instance.new("Frame", screenGui)
 frame.Size = UDim2.new(0, 250, 0, 330)
 frame.Position = UDim2.new(0, 20, 0.5, -165)
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-frame.Parent = screenGui
 
--- Dragging
-local dragging = false
-local dragStart = nil
-local startPos = nil
+-- DRAG
+local dragging, dragStart, startPos = false, nil, nil
 frame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStart = input.Position
         startPos = frame.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
         end)
     end
 end)
 frame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        if dragging then
-            local delta = input.Position - dragStart
-            frame.Position = UDim2.new(
-                startPos.X.Scale,
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale,
-                startPos.Y.Offset + delta.Y
-            )
-        end
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end)
 
--- Title
-local titleFrame = Instance.new("Frame")
+-- TITLE
+local titleFrame = Instance.new("Frame", frame)
 titleFrame.Size = UDim2.new(1, 0, 0, 30)
 titleFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-titleFrame.Parent = frame
 
-local titleLabel = Instance.new("TextLabel")
+local titleLabel = Instance.new("TextLabel", titleFrame)
 titleLabel.Size = UDim2.new(1, -35, 1, 0)
 titleLabel.Position = UDim2.new(0, 5, 0, 0)
 titleLabel.Text = "[UPD🎮] AP: Bat Fight"
 titleLabel.TextColor3 = Color3.new(1,1,1)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.TextScaled = true
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-titleLabel.Parent = titleFrame
 
--- Close button
-local closeButton = Instance.new("TextButton")
+-- CLOSE
+local closeButton = Instance.new("TextButton", titleFrame)
 closeButton.Size = UDim2.new(0, 25, 0, 25)
 closeButton.Position = UDim2.new(1, -30, 0, 2.5)
 closeButton.Text = "X"
 closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-closeButton.TextColor3 = Color3.new(1,1,1)
-closeButton.Parent = titleFrame
 
-local guiVisible = true
-local closedByX = false
-
+local guiVisible, closedByX = true, false
 closeButton.MouseButton1Click:Connect(function()
     frame.Visible = false
     guiVisible = false
@@ -150,36 +119,34 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
--- Scrolling
-local scrollingFrame = Instance.new("ScrollingFrame")
+-- SCROLL
+local scrollingFrame = Instance.new("ScrollingFrame", frame)
 scrollingFrame.Size = UDim2.new(1, -10, 1, -35)
 scrollingFrame.Position = UDim2.new(0, 5, 0, 35)
-scrollingFrame.ScrollBarThickness = 6
 scrollingFrame.BackgroundTransparency = 1
-scrollingFrame.Parent = frame
+scrollingFrame.ScrollBarThickness = 6
 
-local layout = Instance.new("UIListLayout")
+local layout = Instance.new("UIListLayout", scrollingFrame)
 layout.Padding = UDim.new(0, 5)
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Parent = scrollingFrame
 
--- 🔑 RETURN SYSTEM
-local previousPosition = nil
-
-local returnButton = Instance.new("TextButton")
-returnButton.Size = UDim2.new(1, -5, 0, 30)
-returnButton.Text = "⬅ Return to previous location"
-returnButton.BackgroundColor3 = Color3.fromRGB(70, 40, 40)
-returnButton.TextColor3 = Color3.new(1,1,1)
-returnButton.Visible = false
-returnButton.LayoutOrder = 0
-returnButton.Parent = scrollingFrame
-
--- Player
+-- PLAYER
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
--- Return button logic
+player.CharacterAdded:Connect(function(char)
+    humanoidRootPart = char:WaitForChild("HumanoidRootPart")
+end)
+
+-- RETURN SYSTEM
+local previousPosition = nil
+
+local returnButton = Instance.new("TextButton", scrollingFrame)
+returnButton.Size = UDim2.new(1, -5, 0, 30)
+returnButton.Text = "⬅ Return to previous location"
+returnButton.BackgroundColor3 = Color3.fromRGB(70, 40, 40)
+returnButton.Visible = false
+returnButton.LayoutOrder = 0
+
 returnButton.MouseButton1Click:Connect(function()
     if previousPosition then
         humanoidRootPart.CFrame = previousPosition
@@ -188,7 +155,38 @@ returnButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Buttons
+-- REMOVE COOLDOWN BUTTON
+local removeCooldownButton = Instance.new("TextButton", scrollingFrame)
+removeCooldownButton.Size = UDim2.new(1, -5, 0, 30)
+removeCooldownButton.Text = "⚡ Remove all prompt cooldowns"
+removeCooldownButton.BackgroundColor3 = Color3.fromRGB(40, 70, 40)
+removeCooldownButton.LayoutOrder = 1
+
+removeCooldownButton.MouseButton1Click:Connect(function()
+    local prompts = {
+        workspace.Map2:GetChildren()[8].Model.Main.Prox.ProximityPrompt,
+        workspace.Map2["Weapon Spawner"].Model.Main.Prox.ProximityPrompt,
+        workspace.Map2:GetChildren()[7].Model.Main.Prox.ProximityPrompt,
+        workspace.Map2:GetChildren()[6].Model.Main.Prox.ProximityPrompt,
+        workspace.Map.Islands["Hello Kitty"]["Hello Kitty Island"]["Weapon Spawner"].Model.Main.Prox.ProximityPrompt,
+        workspace.Map.Islands.Magma["Magma Island"]["Weapon Spawner"].Model.Main.Prox.ProximityPrompt,
+        workspace.Map.Islands.Void["Void Island"]["Weapon Spawner"].Model.Main.Prox.ProximityPrompt,
+        workspace.Map:GetChildren()[11].Model.Main.Prox.ProximityPrompt,
+        workspace.Map["Weapon Spawner"].Model.Main.Prox.ProximityPrompt,
+        workspace.Map:GetChildren()[7].Model.Main.Prox.ProximityPrompt,
+        workspace.Map2.yay.Model.Main.Prox.ProximityPrompt
+    }
+
+    for _, prompt in ipairs(prompts) do
+        pcall(function()
+            prompt.HoldDuration = 0
+        end)
+    end
+
+    removeCooldownButton.Text = "✅ Cooldowns removed!"
+end)
+
+-- TELEPORT BUTTONS
 local sortedNames = {}
 for name in pairs(locations) do table.insert(sortedNames, name) end
 table.sort(sortedNames, function(a,b) return a:lower() < b:lower() end)
@@ -196,13 +194,12 @@ table.sort(sortedNames, function(a,b) return a:lower() < b:lower() end)
 for index, name in ipairs(sortedNames) do
     local pos = locations[name]
 
-    local button = Instance.new("TextButton")
+    local button = Instance.new("TextButton", scrollingFrame)
     button.Size = UDim2.new(1, -5, 0, 30)
     button.Text = name
     button.BackgroundColor3 = Color3.fromRGB(40,40,40)
     button.TextColor3 = Color3.new(1,1,1)
-    button.LayoutOrder = index + 1 -- shift because return button is 0
-    button.Parent = scrollingFrame
+    button.LayoutOrder = index + 2
 
     button.MouseButton1Click:Connect(function()
         previousPosition = humanoidRootPart.CFrame
@@ -214,8 +211,4 @@ end
 scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
 layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
-end)
-
-player.CharacterAdded:Connect(function(char)
-    humanoidRootPart = char:WaitForChild("HumanoidRootPart")
 end)
