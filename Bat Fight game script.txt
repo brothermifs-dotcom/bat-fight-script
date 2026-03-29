@@ -238,7 +238,7 @@ local function getPrompts()
         workspace.Map2["Weapon Spawner"].Model.Main.Prox.ProximityPrompt,
         workspace.Map2:GetChildren()[7].Model.Main.Prox.ProximityPrompt,
         workspace.Map2:GetChildren()[6].Model.Main.Prox.ProximityPrompt,
-        workspace.Map.Islands["Hello Kitty"]["Hello Kitty Island"]["Weapon Spawner"].Model.Main.Prox.ProximityPrompt,
+        workspace.Map.Map.Islands["Hello Kitty"]["Hello Kitty Island"]["Weapon Spawner"].Model.Main.Prox.ProximityPrompt,
         workspace.Map.Islands.Magma["Magma Island"]["Weapon Spawner"].Model.Main.Prox.ProximityPrompt,
         workspace.Map.Islands.Void["Void Island"]["Weapon Spawner"].Model.Main.Prox.ProximityPrompt,
         workspace.Map:GetChildren()[11].Model.Main.Prox.ProximityPrompt,
@@ -257,14 +257,39 @@ removeCooldownButton.MouseButton1Click:Connect(function()
     removeCooldownButton.Text = "✅ Cooldowns removed!"
 end)
 
+-- MERGED "GET EVERY BAT" BUTTON
 getAllButton.MouseButton1Click:Connect(function()
-    for _, prompt in ipairs(getPrompts()) do
-        pcall(function()
-            prompt.HoldDuration = 1
-            fireproximityprompt(prompt, 1)
-        end)
+    local originalPosition = humanoidRootPart.CFrame
+
+    for _, pos in pairs(locations) do
+        humanoidRootPart.CFrame = CFrame.new(pos)
+        task.wait(0.25)
+
+        for _, prompt in ipairs(getPrompts()) do
+            pcall(function()
+                if prompt and prompt.Parent then
+                    fireproximityprompt(prompt)
+                end
+            end)
+        end
+
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("ProximityPrompt") then
+                local part = obj.Parent
+                if part and part:IsA("BasePart") then
+                    if (part.Position - humanoidRootPart.Position).Magnitude < 25 then
+                        pcall(function()
+                            fireproximityprompt(obj)
+                        end)
+                    end
+                end
+            end
+        end
+
         task.wait(0.15)
     end
+
+    humanoidRootPart.CFrame = originalPosition
     getAllButton.Text = "✅ Got all bats!"
 end)
 
