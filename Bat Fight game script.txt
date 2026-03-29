@@ -260,9 +260,10 @@ end)
 getAllButton.MouseButton1Click:Connect(function()
     for _, prompt in ipairs(getPrompts()) do
         pcall(function()
-            prompt.HoldDuration = 0
-            fireproximityprompt(prompt)
+            prompt.HoldDuration = 1
+            fireproximityprompt(prompt, 1)
         end)
+        task.wait(0.15)
     end
     getAllButton.Text = "✅ Got all bats!"
 end)
