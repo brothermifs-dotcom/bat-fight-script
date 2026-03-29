@@ -1,10 +1,11 @@
---// FINAL Teleport GUI Script (FULLY MERGED)
+--// FINAL Teleport GUI Script (ULTIMATE VERSION)
 
 local ALLOWED_GAME_ID = 12470558349
 local GAME_LINK = "https://www.roblox.com/games/12470558349/AP-Bat-Fight"
 
 local player = game.Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 -- WRONG GAME CHECK
 if game.PlaceId ~= ALLOWED_GAME_ID then
@@ -96,7 +97,7 @@ titleLabel.BackgroundTransparency = 1
 titleLabel.TextScaled = true
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- CLOSE
+-- CLOSE BUTTON
 local closeButton = Instance.new("TextButton", titleFrame)
 closeButton.Size = UDim2.new(0, 25, 0, 25)
 closeButton.Position = UDim2.new(1, -30, 0, 2.5)
@@ -104,10 +105,64 @@ closeButton.Text = "X"
 closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 
 local guiVisible, closedByX = true, false
+
+-- 🔔 NOTIFICATION UI
+local notifFrame = Instance.new("Frame", screenGui)
+notifFrame.Size = UDim2.new(0, 220, 0, 60)
+notifFrame.Position = UDim2.new(1, 250, 0, 20)
+
+local notifCorner = Instance.new("UICorner", notifFrame)
+notifCorner.CornerRadius = UDim.new(0, 10)
+
+notifFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+
+local notifText = Instance.new("TextLabel", notifFrame)
+notifText.Size = UDim2.new(1, -10, 1, -10)
+notifText.Position = UDim2.new(0, 5, 0, 5)
+notifText.BackgroundTransparency = 1
+notifText.Text = "Click Q to reopen the gui"
+notifText.TextColor3 = Color3.new(1,1,1)
+notifText.TextScaled = true
+notifText.Font = Enum.Font.SourceSansBold
+
+local notifSound = Instance.new("Sound", screenGui)
+notifSound.SoundId = "rbxassetid://73722479618078"
+notifSound.Volume = 1
+
+local tweenIn = TweenService:Create(
+    notifFrame,
+    TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {Position = UDim2.new(1, -230, 0, 20)}
+)
+
+local tweenOut = TweenService:Create(
+    notifFrame,
+    TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+    {Position = UDim2.new(1, 250, 0, 20)}
+)
+
+local function showNotification()
+    notifSound:Play()
+    tweenIn:Play()
+    task.delay(4, function()
+        tweenOut:Play()
+    end)
+end
+
 closeButton.MouseButton1Click:Connect(function()
     frame.Visible = false
     guiVisible = false
     closedByX = true
+    showNotification()
+end)
+
+notifFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        frame.Visible = true
+        guiVisible = true
+        closedByX = false
+        tweenOut:Play()
+    end
 end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
@@ -137,7 +192,7 @@ player.CharacterAdded:Connect(function(char)
     humanoidRootPart = char:WaitForChild("HumanoidRootPart")
 end)
 
--- RETURN SYSTEM
+-- RETURN BUTTON
 local previousPosition = nil
 
 local returnButton = Instance.new("TextButton", scrollingFrame)
